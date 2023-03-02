@@ -22,7 +22,7 @@ class Hex:
     # Define flooded property
     @property
     def is_flooded(self):
-        return self.water > 0
+        return self.water_level > 0
     
     @property
     def neighbor_east(self):
