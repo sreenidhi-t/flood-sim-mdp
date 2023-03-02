@@ -1,5 +1,9 @@
 from grid import Grid
 
+# determine which adjacent cell the water flows into
+def flowCell(x,y,grid):
+    currCell = grid.find_hex(x,y)
+    
 
 
 
