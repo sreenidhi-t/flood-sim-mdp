@@ -36,37 +36,36 @@ class Grid:
 
     # Update the elevations of the grid
     def update_elevations(self):
-        max_elevation = 50
+        max_elevation = 200
+        max_deviation = 7
         # Start with top left hex and generate a random elevation
-        # Then, move to the right and generate another random elevation within the average of all neighbor elevations
-        # Then, move down and generate another random elevation within the average of all neighbor elevations
-        # Repeat until all hexes have been assigned an elevation
-        # Start with top left hex
-        self.grid[0][0].elevation = random.randint(0, max_elevation)
-        # Move to the right
+        self.grid[0][0].elevation = random.uniform(0, max_elevation)
+        # Run through the grid and generate elevation within random deviation from the previous hex
         for x, row in enumerate(self.grid):
             for y, col in enumerate(row):
                 # Skip the first hex
                 if x == 0 and y == 0:
                     continue
-                current_hex = self.grid[x][y]
-                # Get the average elevation of the neighbors
-                neighbors = current_hex.get_neighbors_all()
+                # Get elevation of neighbors
+                neighbors = self.grid[x][y].get_neighbors_all()
                 neighbor_elevations = []
-                for neighbor in neighbors:
-                    if neighbor is None:
-                        continue
-                    else:
-                        neighbor_elevations.append(neighbor.elevation)
-                average_elevation = sum(neighbor_elevations) / len(neighbor_elevations)
-                # Generate a random elevation within the average of the neighbor elevations
-                current_hex.elevation = random.randint(math.floor(average_elevation - 5), math.floor(average_elevation + 5))
-                # If the elevation is greater than the max elevation, set it to the max elevation
-                if current_hex.elevation > max_elevation:
-                    current_hex.elevation = max_elevation
-                # If the elevation is less than 0, set it to 0
-                if current_hex.elevation < 0:
-                    current_hex.elevation = 0
+                for n in neighbors:
+                    if n is not None:
+                        neighbor_elevations.append(n.elevation)
+                # Get the average elevation of the neighbors    
+                avg_elevation = sum(neighbor_elevations) / len(neighbor_elevations)
+                # Generate a random deviation from the average elevation
+                deviation = random.uniform(-max_deviation, max_deviation)
+                # Set the elevation of the hex
+                self.grid[x][y].elevation = avg_elevation + deviation
+                # Set the elevation of the hex to the max elevation if it is greater than the max elevation
+                if self.grid[x][y].elevation > max_elevation:
+                    self.grid[x][y].elevation = max_elevation
+                # Set the elevation of the hex to the min elevation if it is less than the min elevation
+                if self.grid[x][y].elevation < 0:
+                    self.grid[x][y].elevation = 0
+
+    
 
     # Calculate the grid
     def calculate(self):

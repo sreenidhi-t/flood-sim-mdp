@@ -79,7 +79,7 @@ class Hex:
             return self.grid.find_hex(self.x + 1, self.y + 1)
         
     
-    # Return the neighbor in the given direction
+    # Return the neighbor in the given direction (east, northeast, northwest, west, southwest, southeast)
     def get_neighbors_dir(self, direction):
         # If the neighbors have not been calculated, calculate them
         if self.neighbors[0] is None:

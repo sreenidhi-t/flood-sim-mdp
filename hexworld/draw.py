@@ -23,10 +23,12 @@ def color_func_elevation(h):
     min_elevation = 0
     max_elevation = 50
 
-    # Scale elevation from blue to red based on elevation value h
-    r = int((h.elevation - min_elevation) / (max_elevation - min_elevation) * 255)
-    g = 0
-    b = int(255 - (h.elevation - min_elevation) / (max_elevation - min_elevation) * 255)
+    # Normalize elevation
+    e  = (h.elevation - min_elevation) / (max_elevation - min_elevation)
+    # Calculate color
+    r = int(255 * e)
+    g = int(255 * e)
+    b = int(255 * e)
     return (r, g, b)
 
 # Draw hexagon to image
@@ -74,8 +76,8 @@ def main():
     grid = Grid(30, 30)
     # Draw grid
     # Use color_func_elevation to draw elevation
-    draw(grid, 'test.png', color_func_elevation, draw_edges=True)
-    # draw(grid, 'test.png', lambda h: (h.elevation * 10, h.elevation * 10, h.elevation * 10), draw_edges=True)
+    # draw(grid, 'test.png', color_func_elevation, draw_edges=True)
+    draw(grid, 'test.png', lambda h: (int(h.elevation * 10), int(h.elevation * 10), int(h.elevation * 10)), draw_edges=True)
     # draw(grid, 'test.png', lambda h: (100, 0, 20), draw_edges=True)
 
 if __name__ == '__main__':
