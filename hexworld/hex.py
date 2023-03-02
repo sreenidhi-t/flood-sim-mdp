@@ -22,7 +22,7 @@ class Hex:
     # Define flooded property
     @property
     def is_flooded(self):
-        return self.water > 0
+        return self.water_level > 0
     
     @property
     def neighbor_east(self):
@@ -100,10 +100,9 @@ class Hex:
         # If the drain is open, subtract the drain rate from the water inflow
         if self.drain_status:
             water_inflow -= self.drain_rate
-        
-        # If water inflow is positive, add to the water level
-        if water_inflow > 0:
-            self.water_level += water_inflow
+
+        # update water level: if drainage is greater than inflow + curr level, water level is 0
+        self.water_level = max(self.water_level + water_inflow, 0)
         
     
 
