@@ -9,9 +9,15 @@ def flowCell(x,y,grid):
     for neighbor in neighbors:
         if neighbor.elevation <= currCell.elevation:
             lower += neighbor
-    return np.random.choice(lower)
+    if currCell.water_level > 0:
+        nextCell = np.random.choice(lower)
+    else:
+        nextCell = None
+    return nextCell
 
-
+# simulate one time step in the grid
+def simulate():
+    pass
 
 
 def main():
