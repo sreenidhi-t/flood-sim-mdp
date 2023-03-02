@@ -80,13 +80,20 @@ class Hex:
         
     
     # Return the neighbor in the given direction
-    def hex_neighbors(self, direction):
+    def get_neighbors_dir(self, direction):
         # If the neighbors have not been calculated, calculate them
         if self.neighbors[0] is None:
             self.neighbors = [self.neighbor_east, self.neighbor_northeast, self.neighbor_northwest, self.neighbor_west, self.neighbor_southwest, self.neighbor_southeast]
         # Dictionary of directions
         cardinal_directions = {"east": 0, "northeast": 1, "northwest": 2, "west": 3, "southwest": 4, "southeast": 5}
         return self.neighbors[cardinal_directions[direction]]
+
+    # Return all neighbors
+    def get_neighbors_all(self):
+        # If the neighbors have not been calculated, calculate them
+        if self.neighbors[0] is None:
+            self.neighbors = [self.neighbor_east, self.neighbor_northeast, self.neighbor_northwest, self.neighbor_west, self.neighbor_southwest, self.neighbor_southeast]
+        return self.neighbors
     
     # Update hex based on water in-flow
     def update_water_level(self, water_inflow):

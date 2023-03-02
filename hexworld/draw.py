@@ -18,6 +18,17 @@ def draw(grid, file_name, color_func, draw_edges=True):
     # Save image
     image.save('bin/' + file_name)
 
+# Define color function
+def color_func_elevation(h):
+    min_elevation = 0
+    max_elevation = 50
+
+    # Scale elevation from blue to red based on elevation value h
+    r = int((h.elevation - min_elevation) / (max_elevation - min_elevation) * 255)
+    g = 0
+    b = int(255 - (h.elevation - min_elevation) / (max_elevation - min_elevation) * 255)
+    return (r, g, b)
+
 # Draw hexagon to image
 def draw_hexagon(draw, cx, cy, x, y, grid, color_func, draw_edges):
     origin = (cx + HEX_RADIUS, cy)
@@ -60,9 +71,12 @@ def draw_hex_edges(draw, cx, cy, x, y, grid):
 
 def main():
     # Create grid
-    grid = Grid(10, 10)
+    grid = Grid(30, 30)
     # Draw grid
-    draw(grid, 'test.png', lambda h: (100, 0, 20), draw_edges=True)
+    # Use color_func_elevation to draw elevation
+    draw(grid, 'test.png', color_func_elevation, draw_edges=True)
+    # draw(grid, 'test.png', lambda h: (h.elevation * 10, h.elevation * 10, h.elevation * 10), draw_edges=True)
+    # draw(grid, 'test.png', lambda h: (100, 0, 20), draw_edges=True)
 
 if __name__ == '__main__':
     main()
