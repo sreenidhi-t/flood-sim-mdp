@@ -17,7 +17,7 @@ class Grid:
 
         self.hexes = []
 
-        self.grid = np.ndarray((self.width, self.height), dtype=np.object)
+        self.grid = np.ndarray((self.width, self.height), dtype=object)
         for x, row in enumerate(self.grid):
             for y, col in enumerate(row):
                 # Set starting elevations to 0
