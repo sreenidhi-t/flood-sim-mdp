@@ -13,5 +13,12 @@ HEX_RECT_HEIGHT = SIDE_LENGTH + 2 * HEX_HEIGHT
 HEX_RECT_WIDTH = 2 * HEX_RADIUS
 
 ## Any other constants useful for simulation
-FLOOD_LEVEL = 0
+FLOOD_LEVEL = 5
+PRECIP_RATE = 0.5 # 6 in/hr = max recorded rainfall rate from Claudette
+MAX_DRAIN_RATE = 1
+FLOW_PER_LEVEL = 0.05
+PROB_DRAIN_FAIL = 0.01
+MAX_ELEV = 250  # average max elevation of cities along the Gulf Coast
+MIN_ELEV = -10  # minimum elevation of any cities along the Gulf Coast
+MAX_ELEV_DEV = 5
 

@@ -130,7 +130,7 @@ class Hex:
         return self.neighbors
     
     
-    def update_water_level(self, water_inflow):
+    def update_water_level(self, water_inflow=0):
         '''# Update hex based on water in-flow'''
         # If the drain is open, subtract the drain rate from the water inflow
         if self.drain_status:

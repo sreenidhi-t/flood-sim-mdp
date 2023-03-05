@@ -1,6 +1,8 @@
 import math
+import noise
 import numpy as np
 import random
+from constants import MAX_DRAIN_RATE, MAX_ELEV, MAX_ELEV_DEV, MIN_ELEV
 
 from hex import Hex
 
@@ -25,14 +27,14 @@ class World:
                 # Random population
                 population = random.randint(0, 100)
                 # Random drain rate
-                drain_rate = random.randint(0, 0)
+                drain_rate = random.random()*MAX_DRAIN_RATE
                 # Create the hex
                 self.grid[x][y] = Hex(self, x, y, elevation, population, drain_rate)
                 # Add the hex to the list of hexes
                 self.hexes.append(self.grid[x][y])
         
         self.calculate()
-        self.update_elevations()
+        self.update_elevations2()
 
     def __deepcopy__(self, memo):
         '''Deep copy the grid'''
@@ -44,8 +46,9 @@ class World:
 
     # Update the elevations of the grid
     def update_elevations(self):
-        max_elevation = 200
-        max_deviation = 7
+        max_elevation = MAX_ELEV
+        min_elevation = MIN_ELEV
+        max_deviation = MAX_ELEV_DEV
         # Start with top left hex and generate a random elevation
         self.grid[0][0].elevation = random.uniform(0, max_elevation)
         # Run through the grid and generate elevation within random deviation from the previous hex
@@ -70,8 +73,20 @@ class World:
                 if self.grid[x][y].elevation > max_elevation:
                     self.grid[x][y].elevation = max_elevation
                 # Set the elevation of the hex to the min elevation if it is less than the min elevation
-                if self.grid[x][y].elevation < 0:
-                    self.grid[x][y].elevation = 0
+                if self.grid[x][y].elevation < min_elevation:
+                    self.grid[x][y].elevation = min_elevation
+
+    def update_elevations2(self):
+        max_elevation = MAX_ELEV
+        min_elevation = MIN_ELEV
+        max_deviation = MAX_ELEV_DEV
+
+        for x, row in enumerate(self.grid):
+            for y, col in enumerate(row):
+                nx = x/self.height
+                ny = y/self.width
+                self.grid[x][y].elevation = noise.pnoise2(nx, ny, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0)
+
 
     
 

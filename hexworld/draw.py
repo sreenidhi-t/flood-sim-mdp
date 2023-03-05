@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 from world import World
-from constants import SIDE_LENGTH, HEX_HEIGHT, HEX_RADIUS, HEX_RECT_HEIGHT, HEX_RECT_WIDTH, FLOOD_LEVEL
+from constants import SIDE_LENGTH, HEX_HEIGHT, HEX_RADIUS, HEX_RECT_HEIGHT, HEX_RECT_WIDTH, FLOOD_LEVEL,MAX_ELEV,MIN_ELEV
 
 # Draw hexagon grid to image
 def draw(world, file_name, color_func, draw_edges=True):
@@ -20,8 +20,8 @@ def draw(world, file_name, color_func, draw_edges=True):
 
 # Define color function
 def color_func_elevation(h):
-    min_elevation = 0
-    max_elevation = 50
+    min_elevation = MIN_ELEV
+    max_elevation = MAX_ELEV
 
     # Normalize elevation
     e  = (h.elevation - min_elevation) / (max_elevation - min_elevation)
@@ -33,15 +33,18 @@ def color_func_elevation(h):
 
 def color_func_water(h):
     min_water = 0
-    max_water = 10
+    max_water = FLOOD_LEVEL
+    if h.is_flooded:
+        return (255,0,0)
 
     # Normalize water
     w = (h.water_level - min_water) / (max_water - min_water)
     # Calculate as shades of blue
     r = int(0)
     g = int(0)
-    b = int(255*w)
+    b = int(255 * w)
     return (r, g, b)
+
 
 # Draw hexagon to image
 def draw_hexagon(draw, cx, cy, x, y, world, color_func, draw_edges):
@@ -88,7 +91,7 @@ def main():
     world = World(30, 30)
     # Draw grid
     # Use color_func_elevation to draw elevation
-    draw(world, 'test.png', color_func_water, draw_edges=True)
+    draw(world, 'test.png', color_func_elevation, draw_edges=True)
     # draw(grid, 'test.png', lambda h: (int(h.elevation * 10), int(h.elevation * 10), int(h.elevation * 10)), draw_edges=True)
     # draw(grid, 'test.png', lambda h: (100, 0, 20), draw_edges=True)
 

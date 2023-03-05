@@ -2,60 +2,137 @@ from world import World
 import numpy as np
 from copy import deepcopy
 from draw import draw, color_func_water, color_func_elevation
+from constants import PRECIP_RATE, FLOW_PER_LEVEL, PROB_DRAIN_FAIL
+from PIL import Image
 
-# class CopyGrid(World):
-#     pass
 
-# determine which adjacent cell the water flows into
-def flowCell(x,y,grid):    
+# generate neighbors of a cell that are lower in elevation
+def low_neighbors(x,y,grid):    
     # get the current cell from the grid and its neighbors
     currCell = grid[x][y]
     neighbors = currCell.get_neighbors_all()
     # compile a list of neighbors with lower elevations
     lower = []
     for neighbor in neighbors:
-        # Check if there is a neighbor with a lower elevation
-        if (neighbor != None) and (neighbor.elevation <= currCell.elevation) and not neighbor.is_flooded:
+        # Check if there is a neighbor with a lower elevation based on the difference in height of water
+        if (neighbor != None) and ((neighbor.elevation + neighbor.water_level) < (currCell.elevation + currCell.water_level)) and not neighbor.is_flooded:
             lower.append(neighbor)
-    # given the current cell has water, identify the next cell it flows to
-    if len(lower) > 0 and currCell.water_level > 0:
-        nextCell = np.random.choice(lower)
-    else:
-        nextCell = None
-    return nextCell
+    return lower
 
 # simulate water flow for one time step in the grid 
-def simulate(world):
+def simFlowIn(world):
     copyWorld = deepcopy(world)   
     copyGrid = copyWorld.grid
     # Iterate thorugh base grid and update copy
     for x, row in enumerate(world.grid):
         for y, col in enumerate(world.grid):
-            # if there is a designated cell for water flow, flood it
-            cell = flowCell(x,y,world.grid)
-            if cell:
-                copyGrid[cell.x][cell.y].update_water_level(20)
-                print("Cell found: {},{}".format(cell.x,cell.y))
+            # if there is water in the current cell determine the water's movement
+            if world.grid[x][y].water_level > 0:
+                lower_neighbors = low_neighbors(x,y,world.grid)
+                # if there are lower neighbors for the water to move to,
+                # determine how much water moves to each cell
+                if len(lower_neighbors) > 0:
+                    flow_rates = calculateFlow(world.grid[x][y], lower_neighbors)
+                    for i, cell in enumerate(lower_neighbors):
+                        water_in = flow_rates[i] * world.grid[x][y].water_level
+                        copyGrid[cell.x][cell.y].update_water_level(water_in)
+                # print("Cell found: {},{}".format(cell.x,cell.y))
     return copyWorld
-    
+
+def calculateFlow(source, neighbors):
+    flow_rates = np.array([])
+    for neighbor in neighbors:
+        # Find difference in elevation between source and neighbor
+        delta_elevation = source.elevation - neighbor.elevation
+        # Calculate flow rate based on difference in elevation
+        flow_rate = delta_elevation * FLOW_PER_LEVEL
+        flow_rates = np.append(flow_rates, flow_rate)
+    # print(flow_rates)
+    # Normalized
+    flow_rates = flow_rates / np.linalg.norm(flow_rates)
+    return flow_rates
+
+def randDrainFail(world):
+    copyWorld = deepcopy(world)   
+    copyGrid = copyWorld.grid
+    # Iterate thorugh base grid and update copy
+    for x, row in enumerate(world.grid):
+        for y, col in enumerate(world.grid):
+            drainFail = np.random.uniform(0,1)
+            if copyGrid[x][y].drain_status and drainFail <= PROB_DRAIN_FAIL:
+                copyGrid[x][y].drain_status = False
+    return copyWorld
+
+def simDrain(world):
+    copyWorld = deepcopy(world)   
+    copyGrid = copyWorld.grid
+    # Iterate thorugh base grid and update copy
+    for x, row in enumerate(world.grid):
+        for y, col in enumerate(world.grid):
+            # for each hex cell, update the flow out based on the drain rate
+            copyGrid[x][y].update_water_level()
+    return copyWorld
+
+def simRain(world, precipRate):
+    copyWorld = deepcopy(world)   
+    copyGrid = copyWorld.grid
+    # Iterate thorugh base grid and update copy
+    for x, row in enumerate(world.grid):
+        for y, col in enumerate(world.grid):
+            # for each hex cell, update the flow in based on the downfall rate
+            copyGrid[x][y].update_water_level(precipRate)
+    return copyWorld
 
 # function to simulate water movement for t timesteps
-def simFlow(world, timeSteps, x0, y0):
+def simulate(world, timeSteps):
+    # storage for animation
+    image_files = []
+
     # set initial condition for the desired cell
-    world.grid[x0][y0].update_water_level(20)
-    # print(world.grid[x0][y0].water_level)
-    # draw(world, 'sim_test_pngs/floodinit.png', color_func = color_func_water, draw_edges=True)
+    draw(world, 'sim_test_outputs/floodinit.png', color_func = color_func_water, draw_edges=True)
+    image_files.append('bin/sim_test_outputs/floodinit.png')
+    # loop through all time steps
     for t in range(timeSteps):
-        world = simulate(world)
-        draw(world, 'sim_test_pngs/flood{}.png'.format(t), color_func = color_func_water, draw_edges=True)
-        print("Time step {} complete".format(t))
-        
+        # one time step worth of rain
+        world = simRain(world, PRECIP_RATE)
+        # one time step worth of flooding
+        world = simFlowIn(world)
+        # one time step worth of randomized drain clogging
+        world = randDrainFail(world)
+        # one time step worth of drainage
+        world = simDrain(world)
+        # generate image and store file name for animation later
+        draw(world, 'sim_test_outputs/flood{}.png'.format(t), color_func = color_func_water, draw_edges=True)
+        image_files.append('bin/sim_test_outputs/flood{}.png'.format(t))
+        # print("Time step {} complete".format(t))
+    
+    animate(image_files,"bin/sim_test_outputs/flood.gif")
+
+
+def animate(inPics, outGif):
+    # set gif size and mode
+    with Image.open(inPics[0]) as pic:
+        size = pic.size
+        mode = pic.mode
+
+    # collate image objects
+    slides = []
+    for pic_file in inPics:
+        with Image.open(pic_file) as pic:
+            # resize
+            if pic.size != size:
+                pic = pic.resize(size)
+            slides.append(pic.convert(mode))
+    
+    # compile into a gif
+    slides[0].save(outGif,save_all=True, append_images=slides[1:], duration = 500, loop = 0)
+    
 
 def main():
     world = World(30,30)
     # Draw world map
-    draw(world, 'sim_test_pngs/map.png', color_func = color_func_elevation, draw_edges=True)
-    simFlow(world, 10, 10, 0)
+    draw(world, 'sim_test_outputs/map.png', color_func = color_func_elevation, draw_edges=True)
+    simulate(world, 30)
 
 if __name__ == '__main__':
     main()
