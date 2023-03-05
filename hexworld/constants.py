@@ -22,4 +22,5 @@ PROB_DRAIN_FAIL = 0.0513/SIM_TIME # calculated lambda from exponential CDF of 0.
 MAX_ELEV = 250  # average max elevation of cities along the Gulf Coast
 MIN_ELEV = 0  # minimum elevation of any cities along the Gulf Coast
 MAX_ELEV_DEV = 5
+DRAIN_FAIL_LEVEL = FLOOD_LEVEL/2 # level after which drain failure can occur
 

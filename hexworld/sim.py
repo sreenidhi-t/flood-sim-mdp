@@ -2,7 +2,7 @@ from world import World
 import numpy as np
 from copy import deepcopy
 from draw import draw, color_func_water, color_func_elevation
-from constants import PRECIP_RATE, FLOW_PER_LEVEL, PROB_DRAIN_FAIL, SIM_TIME
+from constants import PRECIP_RATE, FLOW_PER_LEVEL, PROB_DRAIN_FAIL, SIM_TIME, DRAIN_FAIL_LEVEL
 from PIL import Image
 
 
@@ -59,8 +59,9 @@ def randDrainFail(world):
     for x, row in enumerate(world.grid):
         for y, col in enumerate(world.grid):
             # TODO: Update fail rate to either elavation or water level
+            waterThresholdPassed = copyGrid[x][y].water_level >= DRAIN_FAIL_LEVEL
             drainFail = np.random.uniform(0,1)
-            if copyGrid[x][y].drain_status and drainFail <= PROB_DRAIN_FAIL:
+            if copyGrid[x][y].drain_status and drainFail <= PROB_DRAIN_FAIL and waterThresholdPassed:
                 copyGrid[x][y].drain_status = False
     return copyWorld
 
