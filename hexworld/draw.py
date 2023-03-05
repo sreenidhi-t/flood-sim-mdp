@@ -37,6 +37,9 @@ def color_func_water(h):
     if h.is_flooded:
         return (255,0,0)
 
+    if h.drain_status is False:
+        return (0, 255, 0)
+
     # Normalize water
     w = (h.water_level - min_water) / (max_water - min_water)
     # Calculate as shades of blue
@@ -88,7 +91,7 @@ def draw_hex_edges(draw, cx, cy, x, y, world):
 
 def main():
     # Create grid
-    world = World(30, 30)
+    world = World(50, 50)
     # Draw grid
     # Use color_func_elevation to draw elevation
     draw(world, 'test.png', color_func_elevation, draw_edges=True)

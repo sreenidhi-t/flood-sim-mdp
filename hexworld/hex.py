@@ -130,14 +130,25 @@ class Hex:
         return self.neighbors
     
     
-    def update_water_level(self, water_inflow=0):
+    def add_water(self, water_inflow=0):
         '''# Update hex based on water in-flow'''
-        # If the drain is open, subtract the drain rate from the water inflow
-        if self.drain_status:
-            water_inflow -= self.drain_rate
-
         # update water level: if drainage is greater than inflow + curr level, water level is 0
-        self.water_level = max(self.water_level + water_inflow, 0)
+        self.water_level += water_inflow
+    
+    def remove_water(self, water_out=0):
+        '''# Update hex based on water out-flow'''
+        # update water level: if drainage is greater than inflow + curr level, water level is 0
+        self.water_level -= water_out
+        if self.water_level < 0:
+            self.water_level = 0
+
+    def drain_water(self):
+        '''# Drain water from the hex'''
+        # If the drain is open, drain the water
+        if self.drain_status:
+            self.water_level -= self.drain_rate
+        if self.water_level < 0:
+            self.water_level = 0
         
     
 

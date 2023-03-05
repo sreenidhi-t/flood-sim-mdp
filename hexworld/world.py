@@ -16,6 +16,8 @@ class World:
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.min_elevation = np.inf
+        self.max_elevation = -np.inf
 
         self.hexes = []
 
@@ -38,11 +40,16 @@ class World:
 
     def __deepcopy__(self, memo):
         '''Deep copy the grid'''
-        new_grid = World(self.width, self.height)
+        new_world = World(self.width, self.height)
         for x, row in enumerate(self.grid):
             for y, col in enumerate(row):
-                new_grid.grid[x][y] = self.grid[x][y].__deepcopy__(memo)
-        return new_grid
+                new_world.grid[x][y] = self.grid[x][y].__deepcopy__(memo)
+                new_world.hexes.append(new_world.grid[x][y])
+        return new_world
+    
+    def total_water(self):
+        '''Return the total water in the grid'''
+        return sum([h.water_level for h in self.hexes])
 
     # Update the elevations of the grid
     def update_elevations(self):
@@ -83,12 +90,26 @@ class World:
 
         for x, row in enumerate(self.grid):
             for y, col in enumerate(row):
-                nx = x/self.height
-                ny = y/self.width
-                self.grid[x][y].elevation = noise.pnoise2(nx, ny, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0)
+                freq = 1.25
+                nx = freq*x/self.height 
+                ny = freq*y/self.width
+                elev = np.abs(noise.pnoise2(nx, ny, octaves=16, persistence=0.5, lacunarity=1.7, repeatx=1024, repeaty=1024, base=0))
+                self.setElev(x,y,elev ** 2.5) 
 
+        # normalize
+        min = self.min_elevation
+        max = self.max_elevation
+        for x, row in enumerate(self.grid):
+            for y, col in enumerate(row):
+                elev_norm = (MAX_ELEV - MIN_ELEV) * (self.grid[x][y].elevation - min)/max
+                self.setElev(x,y,elev_norm)
 
-    
+    def setElev(self,x,y,elev):
+        self.grid[x][y].elevation = elev
+        if elev > self.max_elevation:
+            self.max_elevation = elev
+        if elev < self.min_elevation:
+            self.min_elevation = elev
 
     # Calculate the grid
     def calculate(self):
