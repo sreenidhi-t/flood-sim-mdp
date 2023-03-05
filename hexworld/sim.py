@@ -58,6 +58,7 @@ def randDrainFail(world):
     # Iterate thorugh base grid and update copy
     for x, row in enumerate(world.grid):
         for y, col in enumerate(world.grid):
+            # TODO: Update fail rate to either elavation or water level
             drainFail = np.random.uniform(0,1)
             if copyGrid[x][y].drain_status and drainFail <= PROB_DRAIN_FAIL:
                 copyGrid[x][y].drain_status = False
