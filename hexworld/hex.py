@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from constants import FLOOD_LEVEL
 
 
 # Define the Hex class
@@ -19,68 +20,101 @@ class Hex:
         # Define neighbors as E, NE, NW, W, SW, SE
         self.neighbors = [None, None, None, None, None, None]
 
-    # Define flooded property
+    def __deepcopy__(self, memo):
+        '''Deep copy the hex'''
+        return Hex(self.grid, self.x, self.y, self.elevation, self.population, self.drain_rate, self.water_level, self.drain_status)
+
     @property
     def is_flooded(self):
-        return self.water_level > 0
+        '''# Define flooded property'''
+        return self.water_level > FLOOD_LEVEL  
     
     @property
     def neighbor_east(self):
-        # Return the neighbor to the east
+        '''Return the neighbor to the east'''
         # If at the edge of the grid, return None
-        if self.x == self.grid.width - 1:
-            return None
-        else:
-            return self.grid.find_hex(self.x + 1, self.y)
-    
-    @property
-    def neighbor_west(self):
-        # Return the neighbor to the west
-        # If at the edge of the grid, return None
-        if self.x == 0:
-            return None
-        else:
-            return self.grid.find_hex(self.x - 1, self.y)
-    
-    @property
-    def neighbor_northwest(self):
-        # Return the neighbor to the northwest
-        # If at the edge of the grid, return None
-        if self.y == 0:
-            return None
-        else:
-            return self.grid.find_hex(self.x, self.y - 1)
-        
-    @property
-    def neighbor_northeast(self):
-        # Return the neighbor to the northeast
-        # If at the edge of the grid, return None
-        if self.y == 0 or self.x == self.grid.width - 1:
-            return None
-        else:
-            return self.grid.find_hex(self.x + 1, self.y - 1)
-        
-    @property
-    def neighbor_southwest(self):
-        # Return the neighbor to the southwest
-        # If at the edge of the grid, return None
-        if self.y == self.grid.height - 1:
+        if self.y == self.grid.width - 1:
             return None
         else:
             return self.grid.find_hex(self.x, self.y + 1)
     
     @property
-    def neighbor_southeast(self):
-        # Return the neighbor to the southeast
+    def neighbor_west(self):
+        '''Return the neighbor to the west'''
+        # Return the neighbor to the west
         # If at the edge of the grid, return None
-        if self.y == self.grid.height - 1 or self.x == self.grid.width - 1:
+        if self.y == 0:
             return None
         else:
-            return self.grid.find_hex(self.x + 1, self.y + 1)
+            return self.grid.find_hex(self.x, self.y - 1)
+    
+    @property
+    def neighbor_northwest(self):
+        '''Return the neighbor to the NW'''
+        # Return the neighbor to the northwest
+        # If at the edge of the grid, return None
+        if self.x == 0:
+            return None
+        even_row = self.x % 2 == 0
+        if even_row:
+            if self.y == 0:
+                return None
+            else:
+                return self.grid.find_hex(self.x - 1, self.y - 1)
+        else:
+            return self.grid.find_hex(self.x - 1, self.y)
+        
+    @property
+    def neighbor_northeast(self):
+        '''Return the neighbor to the NE'''
+        # Return the neighbor to the northeast
+        # If at the edge of the grid, return None
+        if self.x == 0:
+            return None
+        even_row = self.x % 2 == 0
+        if even_row:
+            return self.grid.find_hex(self.x - 1, self.y)
+        else:
+            if self.y == self.grid.width - 1:
+                return None
+            else:
+                return self.grid.find_hex(self.x - 1, self.y + 1)
+        
+    @property
+    def neighbor_southwest(self):
+        '''Return the neighbor to the SW'''
+        # Return the neighbor to the southwest
+        # If at the edge of the grid, return None
+        if self.x == self.grid.height - 1:
+            return None
+        even_row = self.x % 2 == 0
+        if even_row:
+            if self.y == 0:
+                return None
+            else:
+                return self.grid.find_hex(self.x + 1, self.y - 1)
+        else:
+            return self.grid.find_hex(self.x + 1, self.y)
+    
+    @property
+    def neighbor_southeast(self):
+        '''Return the neighbor to the SE'''
+        # Return the neighbor to the southeast
+        # If at the edge of the grid, return None
+        if self.x == self.grid.height - 1:
+            return None
+        even_row = self.x % 2 == 0
+        if even_row:
+            return self.grid.find_hex(self.x + 1, self.y)
+        else:
+            if self.y == self.grid.width - 1:
+                return None
+            else:
+                return self.grid.find_hex(self.x + 1, self.y + 1)
         
     
-    # Return the neighbor in the given direction (east, northeast, northwest, west, southwest, southeast)
     def get_neighbors_dir(self, direction):
+        '''# Return the neighbor in the given direction (east, northeast, northwest, west, southwest, southeast)'''
         # If the neighbors have not been calculated, calculate them
         if self.neighbors[0] is None:
             self.neighbors = [self.neighbor_east, self.neighbor_northeast, self.neighbor_northwest, self.neighbor_west, self.neighbor_southwest, self.neighbor_southeast]
@@ -88,15 +122,16 @@ class Hex:
         cardinal_directions = {"east": 0, "northeast": 1, "northwest": 2, "west": 3, "southwest": 4, "southeast": 5}
         return self.neighbors[cardinal_directions[direction]]
 
-    # Return all neighbors
     def get_neighbors_all(self):
+        '''# Return all neighbors'''
         # If the neighbors have not been calculated, calculate them
         if self.neighbors[0] is None:
             self.neighbors = [self.neighbor_east, self.neighbor_northeast, self.neighbor_northwest, self.neighbor_west, self.neighbor_southwest, self.neighbor_southeast]
         return self.neighbors
     
-    # Update hex based on water in-flow
+    
     def update_water_level(self, water_inflow):
+        '''# Update hex based on water in-flow'''
         # If the drain is open, subtract the drain rate from the water inflow
         if self.drain_status:
             water_inflow -= self.drain_rate

@@ -12,5 +12,6 @@ HEX_RADIUS = math.cos(HEXAGON_ANGLE) * SIDE_LENGTH
 HEX_RECT_HEIGHT = SIDE_LENGTH + 2 * HEX_HEIGHT
 HEX_RECT_WIDTH = 2 * HEX_RADIUS
 
-
 ## Any other constants useful for simulation
+FLOOD_LEVEL = 0
+

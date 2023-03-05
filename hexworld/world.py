@@ -25,7 +25,7 @@ class World:
                 # Random population
                 population = random.randint(0, 100)
                 # Random drain rate
-                drain_rate = random.randint(0, 10)
+                drain_rate = random.randint(0, 0)
                 # Create the hex
                 self.grid[x][y] = Hex(self, x, y, elevation, population, drain_rate)
                 # Add the hex to the list of hexes
@@ -65,7 +65,7 @@ class World:
                 # Generate a random deviation from the average elevation
                 deviation = random.uniform(-max_deviation, max_deviation)
                 # Set the elevation of the hex
-                self.grid[x][y].elevation = avg_elevation + deviation
+                self.grid[x][y].elevation = avg_elevation + deviation + random.random()
                 # Set the elevation of the hex to the max elevation if it is greater than the max elevation
                 if self.grid[x][y].elevation > max_elevation:
                     self.grid[x][y].elevation = max_elevation
