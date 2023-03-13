@@ -149,7 +149,9 @@ class Hex:
             self.water_level -= self.drain_rate
         if self.water_level < 0:
             self.water_level = 0
-        
+
+    def evac(self, ppl):
+        self.population -= ppl
     
 
 

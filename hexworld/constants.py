@@ -14,7 +14,7 @@ HEX_RECT_WIDTH = 2 * HEX_RADIUS
 
 ## Any other constants useful for simulation
 FLOOD_LEVEL = 5
-SIM_TIME = 48
+SIM_TIME = 20
 PRECIP_RATE = 0.5 # 6 in/hr = max recorded rainfall rate from Claudette
 MAX_DRAIN_RATE = 1.5 # 
 FLOW_PER_LEVEL = 0.05
@@ -23,4 +23,12 @@ MAX_ELEV = 250  # average max elevation of cities along the Gulf Coast
 MIN_ELEV = 0  # minimum elevation of any cities along the Gulf Coast
 MAX_ELEV_DEV = 5
 DRAIN_FAIL_LEVEL = FLOOD_LEVEL/4 # level after which drain failure can occur
+
+## MDP Constants
+MAX_EVAC_CELLS = 5
+DISCOUNT = 0.9
+R_FLOOD_NO_EVAC = -5e-1 # reward for flooding per population
+R_DRY_NO_EVAC = 1e-1 # reward for evacuating per population
+R_FLOOD_EVAC = 5e-1 # reward for surviving per population
+R_DRY_EVAC = -1e-1 # reward for evacuating per population
 

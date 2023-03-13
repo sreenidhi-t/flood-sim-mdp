@@ -135,7 +135,7 @@ def animate(inPics, outGif):
     
 
 def main():
-    world = World(50,50)
+    world = World(10, 10)
     # Draw world map
     draw(world, 'sim_test_outputs/map.png', color_func = color_func_elevation, draw_edges=True)
     simulate(world, SIM_TIME)

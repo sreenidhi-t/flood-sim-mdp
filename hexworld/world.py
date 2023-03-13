@@ -27,7 +27,8 @@ class World:
                 # Set starting elevations to 0
                 elevation = 0
                 # Random population
-                population = random.randint(0, 100)
+                # population = random.randint(0, 100)
+                population = 1
                 # Random drain rate
                 drain_rate = random.random()*MAX_DRAIN_RATE
                 # Create the hex
@@ -125,3 +126,14 @@ class World:
             return self.grid[x][y]
         except IndexError:
             raise GridBoundsException("Invalid coordinates {}, {}".format(x, y))
+        
+    # tupleCoords is a list of coordinate tuples 
+    def evacWorld(self, tupleCoords):
+        numEvac = 0
+        # if tupleCoords is not empty
+        if tupleCoords:
+            for coord in tupleCoords:
+                pop2evac = self.grid[coord[0]][coord[1]].population
+                self.grid[coord[0]][coord[1]].evac(pop2evac)
+                numEvac += pop2evac
+        # return numEvac

@@ -91,7 +91,7 @@ def draw_hex_edges(draw, cx, cy, x, y, world):
 
 def main():
     # Create grid
-    world = World(50, 50)
+    world = World(20, 20)
     # Draw grid
     # Use color_func_elevation to draw elevation
     draw(world, 'test.png', color_func_elevation, draw_edges=True)
