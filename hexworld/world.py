@@ -130,10 +130,10 @@ class World:
     # tupleCoords is a list of coordinate tuples 
     def evacWorld(self, tupleCoords):
         numEvac = 0
-        # if tupleCoords is not empty
         if tupleCoords:
             for coord in tupleCoords:
-                pop2evac = self.grid[coord[0]][coord[1]].population
-                self.grid[coord[0]][coord[1]].evac(pop2evac)
-                numEvac += pop2evac
+                if coord:
+                    pop2evac = self.grid[coord[0]][coord[1]].population
+                    self.grid[coord[0]][coord[1]].evac(pop2evac)
+                    numEvac += pop2evac
         # return numEvac
