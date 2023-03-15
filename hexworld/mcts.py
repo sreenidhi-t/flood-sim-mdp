@@ -141,33 +141,37 @@ class MCTS:
     def traverse(self):
         curr_node = self.root
         # print("Traversing tree...")
-        # print("At root node, and children: ", curr_node==self.root, self.root.children)
+        # print("At root node...")
         # print("Action for root node: ", self.root.children[0].action)
-        # While the current node has children
-        while curr_node.children:
+        # While the current node has children or is an action node
+        while curr_node.children or (curr_node.depth % 2) == 1:
             # print("Entering while loop...")
             # print("Current node depth: ", curr_node.depth)
             # Even depth nodes are state nodes, odd depth nodes are action nodes
             if curr_node.depth % 2 == 0:
                 # Choose the best action node from current state
                 curr_node = self.get_best_action(curr_node)
-                # Expand action node if it has no children
-                if not curr_node.children:
-                    return self.expand_action(curr_node)
+                # # Expand action node if it has no children
+                # if not curr_node.children:
+                #     return self.expand_action(curr_node)
             else:
                 # Determine if we should branch or plunge
                 branch = self.dpw_check(curr_node)
+                # print("Branching? ", branch)
                 # If we should branch, expand the action node
                 if branch:
                     curr_node = self.expand_action(curr_node)
-                    # print("Expanding Action Node...")
+                    print("Expanding Action Node...")
                 else:
                     # Randomly choose a state to plunge into
                     curr_node = random.choice(curr_node.children)
                     # Expand the state node and get first action node
                     curr_node = self.expand_state(curr_node)
-                    # print("Expanding State Node...")  
-            print(curr_node)
+                    print("Expanding State Node...")  
+
+        
+        # print("Current node state: ", curr_node.state)
+        print('################################################')
         return curr_node
     
 
@@ -199,7 +203,7 @@ class MCTS:
             child = Node(action = action)
             child.depth = state_node.depth + 1
             state_node.add_child(child)
-        # return the first child of the state node
+        # return the first action of the children
         return state_node.children[0]
 
     # update the reward and visit count for a node
@@ -220,14 +224,13 @@ def simulate_dpw(state: World):
         print("Simulation: ", i)
         # traverse the tree to get a state node for rollout
         rollout_node = tree.traverse()
-        # print("None state here: ", rollout_node.state)
         # rollout from the state node
         reward = tree.random_rollout(rollout_node.state, ROLL_STEPS)
         rollout_node.reward = reward
         # backpropogate the reward
         tree.backpropogate(rollout_node)
         # break if we have reached the maximum depth
-        if rollout_node.depth >= MAX_DEPTH:
+        if rollout_node.depth >= MAX_DEPTH*2:
             break
     # get the best action from the root node of the tree
     best_action = tree.get_best_action(tree.root).action
@@ -238,13 +241,13 @@ def mcts_run(state: World):
     obj = MCTS(state)
     net_reward = 0
     while t < SIM_TIME:
-        print(t)
+        print("Outer loop: ",t)
         action = simulate_dpw(state)
-        print("Next action to take:, ", action)
         print("Printing action in mcts_run:", action)
         next_state = obj.get_next_state(state, action)
         net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
+        obj = MCTS(state)
         t += 1
     return net_reward
     
