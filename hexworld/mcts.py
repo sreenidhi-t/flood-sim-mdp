@@ -249,7 +249,7 @@ def mcts_run(state: World):
         state = next_state
         obj = MCTS(state)
         t += 1
-    return net_reward
+    return net_reward, state.death_toll()
     
 
 
@@ -287,9 +287,9 @@ def main():
     # Create a world
     world = World(20, 20)
     # Create a MCTS object
-    # mcts = MCTS(world)    
-    # reward = mcts_run(world)
-    reward,dead = RandPolicy(world)
+    mcts = MCTS(world)    
+    reward,dead = mcts_run(world)
+    # reward,dead = RandPolicy(world)
     print(reward," ",dead)
     
 
