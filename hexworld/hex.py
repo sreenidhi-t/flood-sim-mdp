@@ -16,6 +16,8 @@ class Hex:
         self.drain_rate = drain_rate
         self.drain_status = drain_status
         self.water_level = water_level
+        self.evac_flag = False
+        self.flood_flag = False
 
         # Define neighbors as E, NE, NW, W, SW, SE
         self.neighbors = [None, None, None, None, None, None]
@@ -149,9 +151,12 @@ class Hex:
             self.water_level -= self.drain_rate
         if self.water_level < 0:
             self.water_level = 0
+        if self.water_level > FLOOD_LEVEL and not self.flood_flag:
+            self.flood_flag = True
 
     def evac(self, ppl):
         self.population -= ppl
+        self.evac_flag = True
     
 
 

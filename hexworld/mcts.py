@@ -55,7 +55,7 @@ class MCTS:
     def narrow_action_space(self, state: World):
         # Get hexes with water level atleast 25% of flood level and not already flooded
         hexes = state.hexes
-        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.is_flooded)]
+        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.flood_flag)]
 
         # Return x, y, coordinates of hexes in hex_space
         coord_space = [(h.x, h.y) for h in hex_space]
