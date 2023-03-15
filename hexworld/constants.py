@@ -32,3 +32,12 @@ R_DRY_NO_EVAC = 1e-1 # reward for evacuating per population
 R_FLOOD_EVAC = 5e-1 # reward for surviving per population
 R_DRY_EVAC = -1e-1 # reward for evacuating per population
 
+## MCTS-DPW Constants
+MAX_DEPTH = 2 # maximum depth of tree defined by levels of actions 
+NUM_SIMS = 250 # cumulative number of simulations
+K = 2 # DPW coefficient
+ALPHA = 0.5 # DPW progressive widening parameter
+C = 100 # exploration constant
+MAX_ACTION_SPACE = 10 # maximum number of actions to consider at each node
+ROLL_STEPS = 10 # number of steps to roll out for each simulation
+
