@@ -7,7 +7,7 @@ from constants import FLOOD_LEVEL
 class Hex:
 
     # Hex constructor
-    def __init__(self, grid, x, y, elevation, population, drain_rate, water_level = 0, drain_status = True):
+    def __init__(self, grid, x, y, elevation, population, drain_rate, water_level = 0, drain_status = True, evac_flag = False, flood_flag = False, death_toll = 0):
         self.grid = grid
         self.x = x
         self.y = y
@@ -18,13 +18,14 @@ class Hex:
         self.water_level = water_level
         self.evac_flag = False
         self.flood_flag = False
+        self.death_toll = 0
 
         # Define neighbors as E, NE, NW, W, SW, SE
         self.neighbors = [None, None, None, None, None, None]
 
     def __deepcopy__(self, memo):
         '''Deep copy the hex'''
-        return Hex(self.grid, self.x, self.y, self.elevation, self.population, self.drain_rate, self.water_level, self.drain_status)
+        return Hex(self.grid, self.x, self.y, self.elevation, self.population, self.drain_rate, self.water_level, self.drain_status, self.evac_flag, self.flood_flag, self.death_toll)
 
     @property
     def is_flooded(self):
@@ -153,6 +154,7 @@ class Hex:
             self.water_level = 0
         if self.water_level > FLOOD_LEVEL and not self.flood_flag:
             self.flood_flag = True
+            self.death_toll += self.population
 
     def evac(self, ppl):
         self.population -= ppl

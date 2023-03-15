@@ -66,16 +66,16 @@ class MCTS:
         for hex in state.hexes:
             x, y = hex.x, hex.y
             # evacuated and flooded
-            if (x,y) in action and next_state.grid[x][y].is_flooded:
+            if (x,y) in action and next_state.grid[x][y].flood_flag:
                 reward += R_FLOOD_EVAC*hex.population
             # evacuated and not flooded
-            if (x, y) in action and not next_state.grid[x][y].is_flooded:
+            if (x, y) in action and not next_state.grid[x][y].flood_flag:
                 reward += R_DRY_EVAC*hex.population
             # not evacuated and flooded
-            if (x,y) not in action and next_state.grid[x][y].is_flooded:
+            if (x,y) not in action and next_state.grid[x][y].flood_flag:
                 reward += R_FLOOD_NO_EVAC*hex.population
             # not evacuated and not flooded
-            if (x,y) not in action and not next_state.grid[x][y].is_flooded:
+            if (x,y) not in action and not next_state.grid[x][y].flood_flag:
                 reward += R_DRY_NO_EVAC*hex.population
         return reward
     
@@ -279,16 +279,18 @@ def RandPolicy(state: World):
         net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
         t += 1
-    return net_reward
+    # return net reward and total death toll
+    return net_reward, state.death_toll()
 
 
 def main():
     # Create a world
     world = World(20, 20)
     # Create a MCTS object
-    mcts = MCTS(world)    
-    reward = mcts_run(world)
-    print(reward)
+    # mcts = MCTS(world)    
+    # reward = mcts_run(world)
+    reward,dead = RandPolicy(world)
+    print(reward," ",dead)
     
 
 if __name__ == "__main__":

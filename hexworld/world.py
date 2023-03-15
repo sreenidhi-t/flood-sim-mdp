@@ -52,6 +52,10 @@ class World:
         '''Return the total water in the grid'''
         return sum([h.water_level for h in self.hexes])
 
+    def death_toll(self):
+        '''Return the total death toll in the grid'''
+        return sum([h.death_toll for h in self.hexes])
+
     # Update the elevations of the grid
     def update_elevations(self):
         max_elevation = MAX_ELEV
