@@ -7,9 +7,11 @@ import random
 from copy import deepcopy
 import graphviz as gv
 
+
+
 # Node class for MCTS tree
 class Node:
-    def __init__(self, state: World = None, action = None, depth = 0):
+    def __init__(self, state: World = None, action = None, depth = 0, name = None):
         self.state = state
         self.action = action
         self.parent = None
@@ -17,6 +19,7 @@ class Node:
         self.visits = 0
         self.reward = 0
         self.depth = depth
+        self.name = name
     
     def add_child(self, child):
         self.children.append(child)
@@ -31,12 +34,14 @@ class Node:
 class MCTS:
 
     def __init__(self, root: World = None):
-        self.root = Node(root)  # State to perform MTCS on
+        self.root = Node(state = root, name = "root")  # State to perform MTCS on
         self.depth = 0  # Depth of tree
         self.count = 0  # Number of root node visits
         # self.m = 20  # Number of simulations to run
         # self.c = 0  # Exploration constant
         self.tree = {}  # Dictionary of Tree of nodes with keys as parents and values as children
+        self.state_i = 0
+        self.action_i = 0
 
     def get_next_state(self, state: World, action):
         # Create a copy of the current state
@@ -167,7 +172,8 @@ class MCTS:
                     # Randomly choose a state to plunge into
                     curr_node = random.choice(curr_node.children)
                     # Expand the state node and get first action node
-                    curr_node = self.expand_state(curr_node)
+                    if not curr_node.children:
+                        curr_node = self.expand_state(curr_node)
                     print("Expanding State Node...")  
 
         
@@ -188,13 +194,14 @@ class MCTS:
     # expand the tree from an action node with one state node
     def expand_action(self, action_node):
         # Create new state node from action node
-        state_node = Node(state = self.get_next_state(action_node.parent.state, action_node.action))
+        state_node = Node(state = self.get_next_state(action_node.parent.state, action_node.action), name = "S"+str(self.state_i))
         # increase depth of state node
         state_node.depth = action_node.depth + 1
         # Add state node as child of action node
         action_node.add_child(state_node)
         # add child nodes to the corresponding parent key in the tree dictionary
-        self.tree[action_node] = [state_node]
+        self.tree.setdefault(action_node,[]).append(state_node)
+        self.state_i += 1
         return state_node
     
     # expand the tree from a state node
@@ -203,11 +210,12 @@ class MCTS:
         actions = self.get_branched_actions(state_node.state)
         # Create child nodes for each action
         for action in actions:
-            child = Node(action = action)
+            child = Node(action = action, name = "A"+str(self.action_i))
             child.depth = state_node.depth + 1
             state_node.add_child(child)
             # add child nodes to the corresponding parent key in the tree dictionary
-            self.tree[state_node] = [child]
+            self.tree.setdefault(state_node,[]).append(child)
+            self.action_i += 1
         # return the first action of the children
         return state_node.children[0]
 
@@ -224,14 +232,14 @@ class MCTS:
     def visualize(self):
         graph = gv.Digraph()
         for node in self.tree.keys():
-            graph.node(node)
+            graph.node(node.name)
         for parent, children in self.tree.items():
             for child in children:
-                graph.edge(parent, child)
+                print(parent.name, child.name)
+                graph.edge(parent.name, child.name)
         graph.render('./bin/tree_visual', format = 'png',view=True)
         
-def simulate_dpw(state: World):
-    tree = MCTS(state)
+def simulate_dpw(tree: MCTS):
     # expand the root node once to get the child action nodes
     tree.expand_state(tree.root)
     for i in range(NUM_SIMS):
@@ -256,12 +264,13 @@ def mcts_run(state: World):
     net_reward = 0
     while t < SIM_TIME:
         print("Outer loop: ",t)
-        action = simulate_dpw(state)
-        print("Printing action in mcts_run:", action)
+        action = simulate_dpw(obj)
         next_state = obj.get_next_state(state, action)
         net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
-        obj = MCTS(state)
+        print([child.name for child in obj.root.children[0].children])
+        obj.visualize()
+        obj = MCTS(obj)
         t += 1
     return net_reward, state.death_toll()
     
@@ -302,11 +311,11 @@ def main():
     # Create a world
     world = World(20, 20)
     # Create a MCTS object
-    mcts = MCTS(world)    
+    # mcts = MCTS(world)    
     reward,dead = mcts_run(world)
     # reward,dead = RandPolicy(world)
     # depict the tree
-    mcts.visualize()
+    # mcts.visualize()
     print(reward," ",dead)
     
 
