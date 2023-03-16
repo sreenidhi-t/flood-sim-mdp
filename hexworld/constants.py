@@ -14,7 +14,7 @@ HEX_RECT_WIDTH = 2 * HEX_RADIUS
 
 ## Any other constants useful for simulation
 FLOOD_LEVEL = 5
-SIM_TIME = 1
+SIM_TIME = 2
 PRECIP_RATE = 0.5 # 6 in/hr = max recorded rainfall rate from Claudette
 MAX_DRAIN_RATE = 1.5 # 
 FLOW_PER_LEVEL = 0.05
@@ -34,9 +34,9 @@ R_DRY_EVAC = -1e-1 # reward for evacuating per population
 
 ## MCTS-DPW Constants
 MAX_DEPTH = 5 # maximum depth of tree defined by levels of actions 
-NUM_SIMS = 20 # cumulative number of simulations
+NUM_SIMS = 1000 # cumulative number of simulations
 K = 2 # DPW coefficient
-ALPHA = 0.5 # DPW progressive widening parameter
+ALPHA = 0.1 # DPW progressive widening parameter
 C = 100 # exploration constant
-MAX_ACTION_SPACE = 10 # maximum number of actions to consider at each node
+MAX_ACTION_SPACE = 5 # maximum number of actions to consider at each node
 ROLL_STEPS = 10 # number of steps to roll out for each simulation

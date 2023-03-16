@@ -106,7 +106,7 @@ class MCTS:
             rollout_state = next_state
         return utility
 
-    def get_branched_actions(self, state):
+    def get_branched_actions(self, state, depth):
         # Get action space
         coord_space = self.narrow_action_space(state)
         # Create combinations of all actions
@@ -121,10 +121,15 @@ class MCTS:
                     action_space.append(list(x))
 
         # Randomly choose m actions from action space
-        if len(action_space) < MAX_ACTION_SPACE:
+        if depth == 0:
+            max_actions = MAX_ACTION_SPACE
+        else:
+            max_actions = int((1/depth)*MAX_ACTION_SPACE)
+        # Calculate the max action for this depth
+        if len(action_space) < max_actions:
             actions = action_space
         else:
-            actions = random.choices(action_space, k=MAX_ACTION_SPACE)
+            actions = random.choices(action_space, k=max_actions)
         return actions
 
     def get_best_action(self, parent):
@@ -167,18 +172,18 @@ class MCTS:
                 # If we should branch, expand the action node
                 if branch:
                     curr_node = self.expand_action(curr_node)
-                    print("Expanding Action Node...")
+                    # print("Expanding Action Node...")
                 else:
                     # Randomly choose a state to plunge into
                     curr_node = random.choice(curr_node.children)
                     # Expand the state node and get first action node
                     if not curr_node.children:
                         curr_node = self.expand_state(curr_node)
-                    print("Expanding State Node...")  
+                    # print("Expanding State Node...")  
 
         
         # print("Current node state: ", curr_node.state)
-        print('################################################')
+        # print('################################################')
         return curr_node
     
 
@@ -207,7 +212,7 @@ class MCTS:
     # expand the tree from a state node
     def expand_state(self, state_node): 
         # Get action space
-        actions = self.get_branched_actions(state_node.state)
+        actions = self.get_branched_actions(state_node.state, int(state_node.depth/2))
         # Create child nodes for each action
         for action in actions:
             child = Node(action = action, name = "A"+str(self.action_i))
@@ -235,7 +240,6 @@ class MCTS:
             graph.node(node.name)
         for parent, children in self.tree.items():
             for child in children:
-                print(parent.name, child.name)
                 graph.edge(parent.name, child.name)
         graph.render('./bin/tree_visual', format = 'png',view=True)
         
@@ -264,13 +268,17 @@ def mcts_run(state: World):
     net_reward = 0
     while t < SIM_TIME:
         print("Outer loop: ",t)
-        action = simulate_dpw(obj)
+        if t == 0:
+            action = []
+            obj.expand_state(obj.root)
+        else:
+            action = simulate_dpw(obj)
         next_state = obj.get_next_state(state, action)
         net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
         print([child.name for child in obj.root.children[0].children])
         obj.visualize()
-        obj = MCTS(obj)
+        obj = MCTS(state)
         t += 1
     return net_reward, state.death_toll()
     
@@ -279,7 +287,7 @@ def mcts_run(state: World):
 def RandAct(state: World, t):
     obj = MCTS(state)
     # get potential actions from given state
-    action_space = obj.get_branched_actions(state)
+    action_space = obj.get_branched_actions(state) # TODO: add DEPTH parameter
     # generate potential next states from each action
     if not action_space:
         return action_space
