@@ -124,7 +124,7 @@ class MCTS:
         if depth == 0:
             max_actions = MAX_ACTION_SPACE
         else:
-            max_actions = int((1/depth)*MAX_ACTION_SPACE)
+            max_actions = int(MAX_ACTION_SPACE/depth)
         # Calculate the max action for this depth
         if len(action_space) < max_actions:
             actions = action_space
@@ -145,8 +145,9 @@ class MCTS:
     def ucb1(self, node):
         if node.visits == 0:
             return float("inf")
+            # return 1000
         # otherwise, return the UCB1 heuristic for the node
-        return (node.reward/node.visits) + C * np.sqrt(np.log(node.parent.visits) / node.visits)
+        return (node.reward/node.visits) + (C/(node.depth)) * np.sqrt(np.log(node.parent.visits) / node.visits)
     
     # traverse the tree and return the state node to conduct rollout from
     def traverse(self):
@@ -181,7 +182,7 @@ class MCTS:
                         curr_node = self.expand_state(curr_node)
                     # print("Expanding State Node...")  
 
-        
+        # print("Current node depth: ", curr_node.depth)
         # print("Current node state: ", curr_node.state)
         # print('################################################')
         return curr_node
@@ -192,7 +193,8 @@ class MCTS:
         branch = True
         N_action = action_node.visits
         # Select a state to plunge into
-        if N_action > K*(N_action**ALPHA):
+        limit = int(MAX_STATE_SPACE/action_node.depth)#(K/action_node.depth)*(N_action**ALPHA)
+        if N_action > max(1,limit):
             branch = False
         return branch
 
@@ -243,15 +245,15 @@ class MCTS:
                 graph.edge(parent.name, child.name)
         graph.render('./bin/tree_visual', format = 'png',view=True)
         
-def simulate_dpw(tree: MCTS):
+def simulate_dpw(tree: MCTS, t):
     # expand the root node once to get the child action nodes
     tree.expand_state(tree.root)
     for i in range(NUM_SIMS):
-        print("Simulation: ", i)
+        # print("Simulation: ", i)
         # traverse the tree to get a state node for rollout
         rollout_node = tree.traverse()
         # rollout from the state node
-        reward = tree.random_rollout(rollout_node.state, ROLL_STEPS)
+        reward = tree.random_rollout(rollout_node.state, min(SIM_TIME-t,ROLL_STEPS))
         rollout_node.reward = reward
         # backpropogate the reward
         tree.backpropogate(rollout_node)
@@ -272,11 +274,11 @@ def mcts_run(state: World):
             action = []
             obj.expand_state(obj.root)
         else:
-            action = simulate_dpw(obj)
+            action = simulate_dpw(obj,t)
         next_state = obj.get_next_state(state, action)
         net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
-        print([child.name for child in obj.root.children[0].children])
+        # print([child.name for child in obj.root.children[0].children])
         obj.visualize()
         obj = MCTS(state)
         t += 1
@@ -287,7 +289,7 @@ def mcts_run(state: World):
 def RandAct(state: World, t):
     obj = MCTS(state)
     # get potential actions from given state
-    action_space = obj.get_branched_actions(state) # TODO: add DEPTH parameter
+    action_space = obj.get_branched_actions(state, depth=0)
     # generate potential next states from each action
     if not action_space:
         return action_space
@@ -304,7 +306,7 @@ def RandPolicy(state: World):
     obj = MCTS(state)
     net_reward = 0
     while t < SIM_TIME:
-        print(t)
+        print("Outer loop: ",t)
         action = RandAct(state, SIM_TIME - t)
         next_state = obj.get_next_state(state, action)
         net_reward += obj.calculate_reward(state, action, next_state)
