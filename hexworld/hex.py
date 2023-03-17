@@ -16,9 +16,9 @@ class Hex:
         self.drain_rate = drain_rate
         self.drain_status = drain_status
         self.water_level = water_level
-        self.evac_flag = False
-        self.flood_flag = False
-        self.death_toll = 0
+        self.evac_flag = evac_flag
+        self.flood_flag = flood_flag
+        self.death_toll = death_toll
 
         # Define neighbors as E, NE, NW, W, SW, SE
         self.neighbors = [None, None, None, None, None, None]

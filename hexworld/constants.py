@@ -27,12 +27,12 @@ DRAIN_FAIL_LEVEL = FLOOD_LEVEL/4 # level after which drain failure can occur
 ## MDP Constants
 MAX_EVAC_CELLS = 3 # maximum number of cells that can be evacuated
 DISCOUNT = 0.9
-R_FLOOD_NO_EVAC = -10e-1 # reward for flooding per population
+R_FLOOD_NO_EVAC = -10 # reward for flooding per population
 # R_DRY_NO_EVAC = 1e-1 # reward for evacuating per population
-R_FLOOD_EVAC = 7e-1 # reward for surviving per population
+R_FLOOD_EVAC = 7 # reward for surviving per population
 # R_DRY_EVAC = -2e-1 # reward for evacuating per population
-R_EVAC = -0.1e-1
-MCTS_RUN = True # boolean to alter run mode as MCTS or Random
+R_EVAC = -0.1 # cost for evacuating per population
+MCTS_RUN = False # boolean to alter run mode as MCTS or Random
 
 ## MCTS-DPW Constants
 MAX_DEPTH = 5 # maximum depth of tree defined by levels of actions 

@@ -16,7 +16,7 @@ def draw(world, file_name, color_func, draw_edges=True):
             draw_hexagon(draw, cx, cy, x, y, world, color_func, draw_edges)
 
     # Save image
-    image.save('bin/' + file_name)
+    image.save('bin/evac_out/' + file_name)
 
 # Define color function
 def color_func_elevation(h):
@@ -48,6 +48,11 @@ def color_func_water(h):
     b = int(255 * w)
     return (r, g, b)
 
+def color_func_evacuation(h):
+    if h.evac_flag:
+        return (255, 255, 255)
+    return (0, 0, 0)
+
 
 # Draw hexagon to image
 def draw_hexagon(draw, cx, cy, x, y, world, color_func, draw_edges):
@@ -65,8 +70,8 @@ def draw_hexagon(draw, cx, cy, x, y, world, color_func, draw_edges):
                   pointer_3,
                   pointer_4,
                   pointer_5],
-                 outline=None,
-                 fill=color_func(h))
+                  outline=None,
+                  fill=color_func(h))
     
     # Draw edges
     if draw_edges:
@@ -81,13 +86,14 @@ def draw_hex_edges(draw, cx, cy, x, y, world):
     pointer_4 = (cx, cy + SIDE_LENGTH + HEX_HEIGHT)
     pointer_5 = (cx, cy + HEX_HEIGHT)
 
-    h = world.find_hex(x, y)
-    draw.line([origin, pointer], fill=(0, 0, 0))
-    draw.line([pointer, pointer_2], fill=(0, 0, 0))
-    draw.line([pointer_2, pointer_3], fill=(0, 0, 0))
-    draw.line([pointer_3, pointer_4], fill=(0, 0, 0))
-    draw.line([pointer_4, pointer_5], fill=(0, 0, 0))
-    draw.line([pointer_5, origin], fill=(0, 0, 0))
+    if world.find_hex(x, y).evac_flag:
+        evac_color = (255, 255, 255)
+        draw.line([origin, pointer], fill=evac_color)
+        draw.line([pointer, pointer_2], fill=evac_color)
+        draw.line([pointer_2, pointer_3], fill=evac_color)
+        draw.line([pointer_3, pointer_4], fill=evac_color)
+        draw.line([pointer_4, pointer_5], fill=evac_color)
+        draw.line([pointer_5, origin], fill=evac_color)
 
 def main():
     # Create grid

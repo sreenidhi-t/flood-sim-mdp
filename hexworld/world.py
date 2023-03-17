@@ -133,11 +133,16 @@ class World:
         
     # tupleCoords is a list of coordinate tuples 
     def evacWorld(self, tupleCoords):
+        memo = {}
+        copyWorld = self.__deepcopy__(memo)  
+        copyGrid = copyWorld.grid
         numEvac = 0
         if tupleCoords:
             for coord in tupleCoords:
                 if coord:
-                    pop2evac = self.grid[coord[0]][coord[1]].population
-                    self.grid[coord[0]][coord[1]].evac(pop2evac)
+                    # print("Original grid value: {}".format(self.grid[coord[0]][coord[1]].evac_flag))
+                    pop2evac = copyGrid[coord[0]][coord[1]].population
+                    copyGrid[coord[0]][coord[1]].evac(pop2evac)
+                    # print("New grid value: {}".format(copyGrid[coord[0]][coord[1]].evac_flag))
                     numEvac += pop2evac
-        # return numEvac
+        return copyWorld  

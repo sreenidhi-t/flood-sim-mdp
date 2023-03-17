@@ -6,7 +6,7 @@ import itertools
 import random
 from copy import deepcopy
 import graphviz as gv
-
+from draw import *
 
 
 # Node class for MCTS tree
@@ -47,7 +47,7 @@ class MCTS:
         # Create a copy of the current state
         next_state = deepcopy(state)
         # Perform evacuation action
-        next_state.evacWorld(action)
+        next_state = next_state.evacWorld(action)
         # one time step worth of rain
         next_state = simRain(next_state, PRECIP_RATE)
         # one time step worth of flooding
@@ -61,7 +61,7 @@ class MCTS:
     def narrow_action_space(self, state: World):
         # Get hexes with water level atleast 25% of flood level and not already flooded
         hexes = state.hexes
-        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.flood_flag)]
+        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.flood_flag) and (not h.evac_flag)]
 
         # Return x, y, coordinates of hexes in hex_space
         coord_space = [(h.x, h.y) for h in hex_space]
@@ -283,6 +283,8 @@ class MCTS:
             for child in children:
                 graph.edge(parent.name, child.name)
         graph.render('./bin/tree_visual', format = 'png',view=True)
+
+
         
 def simulate_dpw(tree: MCTS, t):
     # expand the root node once to get the child action nodes
@@ -314,11 +316,13 @@ def mcts_run(state: World):
             obj.expand_state(obj.root)
         else:
             action = simulate_dpw(obj,t)
+        print(action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
         state = next_state
         # print([child.name for child in obj.root.children[0].children])
         # obj.visualize()
+        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         obj = MCTS(state)
         t += 1
     net_reward += obj.calculate_flood_reward(state)
@@ -350,8 +354,10 @@ def RandPolicy(state: World):
         print("action: ", action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
+        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         state = next_state
         t += 1
+        
     net_reward += obj.calculate_flood_reward(state)
     # return net reward and total death toll
     return net_reward, state.death_toll()
