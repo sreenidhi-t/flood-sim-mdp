@@ -97,12 +97,32 @@ class MCTS:
         #         reward += R_DRY_NO_EVAC*hex.population
         return reward
     
+    def calculate_evac_reward(self, state: World, action):
+        reward = 0
+        for hex in state.hexes:
+            x, y = hex.x, hex.y
+            # cost for evacuating a hex
+            if (x,y) in action:
+                reward += R_EVAC*hex.population
+        return reward
+    
+    def calculate_flood_reward(self, state):
+        reward = 0
+        for hex in state.hexes:
+            x, y = hex.x, hex.y
+            # reward if hex flooded and already evacuated
+            if hex.flood_flag and hex.population==0:
+                reward += R_FLOOD_EVAC
+            # reward if hex flooded and not evacuated
+            if hex.flood_flag and hex.population>0:
+                reward += R_FLOOD_NO_EVAC*hex.population
+        return reward
     
     def random_rollout(self, state: World, steps=ROLL_STEPS):
         # create a copy of our state after taking a current action
         rollout_state = deepcopy(state)
         # rollout for a certain number of states
-        utility = 0
+        evac_reward = 0
         for i in range(steps):
             # select random action (i.e. select some number of random hexes to evacuate)
             action_space = self.narrow_action_space(rollout_state)
@@ -111,10 +131,14 @@ class MCTS:
             else:
                 evac_hexes = random.choices(action_space, k=MAX_EVAC_CELLS)
             # calculate reward for this action step and add to the total utility            
-            utility += self.calculate_reward(rollout_state, evac_hexes)
+            evac_reward += self.calculate_evac_reward(rollout_state, evac_hexes)
             # get the next state and repeat
             rollout_state = self.get_next_state(rollout_state, evac_hexes)
-        return utility
+            
+        flood_reward = self.calculate_flood_reward(rollout_state)
+        total_reward = evac_reward + flood_reward
+
+        return total_reward
 
     def get_branched_actions(self, state, depth):
         # Get action space
@@ -290,15 +314,15 @@ def mcts_run(state: World):
             obj.expand_state(obj.root)
         else:
             action = simulate_dpw(obj,t)
-        net_reward += obj.calculate_reward(state, action)
+        net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
         state = next_state
         # print([child.name for child in obj.root.children[0].children])
         # obj.visualize()
         obj = MCTS(state)
         t += 1
+    net_reward += obj.calculate_flood_reward(state)
     return net_reward, state.death_toll()
-    
 
 
 def RandAct(state: World, t):
@@ -323,10 +347,12 @@ def RandPolicy(state: World):
     while t < SIM_TIME:
         print("Outer loop: ",t)
         action = RandAct(state, SIM_TIME - t)
+        print("action: ", action)
+        net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
-        net_reward += obj.calculate_reward(state, action)
         state = next_state
         t += 1
+    net_reward += obj.calculate_flood_reward(state)
     # return net reward and total death toll
     return net_reward, state.death_toll()
 
@@ -337,10 +363,10 @@ def main():
     world = World(20, 20)
     # Create a MCTS object 
     if MCTS_RUN:
-        reward,dead = mcts_run(world)
+        reward, dead = mcts_run(world)
     else:
-        reward,dead = RandPolicy(world)
-    print(reward," ",dead)
+        reward, dead = RandPolicy(world)
+    print(reward, dead)
     
 
 if __name__ == "__main__":

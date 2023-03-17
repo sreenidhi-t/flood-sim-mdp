@@ -34,7 +34,7 @@ def color_func_elevation(h):
 def color_func_water(h):
     min_water = 0
     max_water = FLOOD_LEVEL
-    if h.is_flooded:
+    if h.flood_flag:
         return (255,0,0)
 
     if h.drain_status is False:
