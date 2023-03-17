@@ -5,8 +5,9 @@ import numpy as np
 import itertools
 import random
 from copy import deepcopy
-import graphviz as gv
+# import graphviz as gv
 from draw import *
+import time 
 
 
 # Node class for MCTS tree
@@ -275,14 +276,14 @@ class MCTS:
             curr_depth -= 1
             parent = parent.parent
 
-    def visualize(self):
-        graph = gv.Digraph()
-        for node in self.tree.keys():
-            graph.node(node.name)
-        for parent, children in self.tree.items():
-            for child in children:
-                graph.edge(parent.name, child.name)
-        graph.render('./bin/tree_visual', format = 'png',view=True)
+    # def visualize(self):
+    #     graph = gv.Digraph()
+    #     for node in self.tree.keys():
+    #         graph.node(node.name)
+    #     for parent, children in self.tree.items():
+    #         for child in children:
+    #             graph.edge(parent.name, child.name)
+    #     graph.render('./bin/tree_visual', format = 'png',view=True)
 
 
         
@@ -316,13 +317,13 @@ def mcts_run(state: World):
             obj.expand_state(obj.root)
         else:
             action = simulate_dpw(obj,t)
-        print(action)
+        # print(action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
         state = next_state
         # print([child.name for child in obj.root.children[0].children])
         # obj.visualize()
-        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
+        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         obj = MCTS(state)
         t += 1
     net_reward += obj.calculate_flood_reward(state)
@@ -351,10 +352,10 @@ def RandPolicy(state: World):
     while t < SIM_TIME:
         print("Outer loop: ",t)
         action = RandAct(state, SIM_TIME - t)
-        print("action: ", action)
+        # print("action: ", action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
-        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
+        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         state = next_state
         t += 1
         
@@ -374,4 +375,6 @@ def main():
     
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    print("--- %s seconds ---" % (time.time() - start_time))
