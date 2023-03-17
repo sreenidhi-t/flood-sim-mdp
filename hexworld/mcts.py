@@ -362,8 +362,6 @@ def RandPolicy(state: World):
     # return net reward and total death toll
     return net_reward, state.death_toll()
 
-
-
 def main():
     # Create a world
     world = World(20, 20)

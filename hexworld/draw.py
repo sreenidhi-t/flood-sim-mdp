@@ -70,7 +70,6 @@ def draw_hexagon(draw, cx, cy, x, y, world, color_func, draw_edges):
                   pointer_3,
                   pointer_4,
                   pointer_5],
-                  outline=None,
                   fill=color_func(h))
     
     # Draw edges
