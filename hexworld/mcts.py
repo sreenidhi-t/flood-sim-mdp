@@ -323,7 +323,7 @@ def mcts_run(state: World):
         state = next_state
         # print([child.name for child in obj.root.children[0].children])
         # obj.visualize()
-        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
+        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         obj = MCTS(state)
         t += 1
     net_reward += obj.calculate_flood_reward(state)

@@ -136,10 +136,14 @@ def animate(inPics, outGif):
     
 
 def main():
-    world = World(20, 20)
-    # Draw world map
-    draw(world, 'sim_test_outputs/map.png', color_func = color_func_elevation, draw_edges=True)
-    simulate(world, SIM_TIME)
+    # world = World(20, 20)
+    # # Draw world map
+    # draw(world, 'sim_test_outputs/map.png', color_func = color_func_elevation, draw_edges=True)
+    # simulate(world, SIM_TIME)
+    image_files = []
+    for i in range(20):
+        image_files.append('bin/evac_out/test{}.png'.format(i))
+    animate(image_files,"bin/evac_out/evac.gif")
 
 if __name__ == '__main__':
     main()
