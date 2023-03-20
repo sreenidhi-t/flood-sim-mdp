@@ -5,8 +5,9 @@ import numpy as np
 import itertools
 import random
 from copy import deepcopy
-import graphviz as gv
-
+# import graphviz as gv
+from draw import *
+import time 
 
 
 # Node class for MCTS tree
@@ -47,7 +48,7 @@ class MCTS:
         # Create a copy of the current state
         next_state = deepcopy(state)
         # Perform evacuation action
-        next_state.evacWorld(action)
+        next_state = next_state.evacWorld(action)
         # one time step worth of rain
         next_state = simRain(next_state, PRECIP_RATE)
         # one time step worth of flooding
@@ -61,36 +62,68 @@ class MCTS:
     def narrow_action_space(self, state: World):
         # Get hexes with water level atleast 25% of flood level and not already flooded
         hexes = state.hexes
-        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.flood_flag)]
+        hex_space = [h for h in hexes if (h.water_level > 0.25*FLOOD_LEVEL) and (not h.flood_flag) and (not h.evac_flag)]
 
         # Return x, y, coordinates of hexes in hex_space
         coord_space = [(h.x, h.y) for h in hex_space]
         return coord_space
     
-    def calculate_reward(self, state: World, action, next_state: World):
+    def calculate_reward(self, state: World, action):
+        reward = 0
+
+        for hex in state.hexes:
+            x, y = hex.x, hex.y
+            # cost for evacuating a hex
+            if (x,y) in action:
+                reward += R_EVAC*hex.population
+            # reward if hex flooded and already evacuated
+            if hex.flood_flag and hex.population==0:
+                reward += R_FLOOD_EVAC
+            # reward if hex flooded and not evacuated
+            if hex.flood_flag and hex.population>0:
+                reward += R_FLOOD_NO_EVAC*hex.population
+        # for hex in state.hexes:
+        #     x, y = hex.x, hex.y
+        #     # evacuated and flooded
+        #     if (x,y) in action and next_state.grid[x][y].flood_flag:
+        #         reward += R_FLOOD_EVAC*hex.population
+        #     # evacuated and not flooded
+        #     if (x, y) in action and not next_state.grid[x][y].flood_flag:
+        #         reward += R_DRY_EVAC*hex.population
+        #     # not evacuated and flooded
+        #     if (x,y) not in action and next_state.grid[x][y].flood_flag:
+        #         reward += R_FLOOD_NO_EVAC*hex.population
+        #     # not evacuated and not flooded
+        #     if (x,y) not in action and not next_state.grid[x][y].flood_flag:
+        #         reward += R_DRY_NO_EVAC*hex.population
+        return reward
+    
+    def calculate_evac_reward(self, state: World, action):
         reward = 0
         for hex in state.hexes:
             x, y = hex.x, hex.y
-            # evacuated and flooded
-            if (x,y) in action and next_state.grid[x][y].flood_flag:
-                reward += R_FLOOD_EVAC*hex.population
-            # evacuated and not flooded
-            if (x, y) in action and not next_state.grid[x][y].flood_flag:
-                reward += R_DRY_EVAC*hex.population
-            # not evacuated and flooded
-            if (x,y) not in action and next_state.grid[x][y].flood_flag:
-                reward += R_FLOOD_NO_EVAC*hex.population
-            # not evacuated and not flooded
-            if (x,y) not in action and not next_state.grid[x][y].flood_flag:
-                reward += R_DRY_NO_EVAC*hex.population
+            # cost for evacuating a hex
+            if (x,y) in action:
+                reward += R_EVAC*hex.population
         return reward
     
+    def calculate_flood_reward(self, state):
+        reward = 0
+        for hex in state.hexes:
+            x, y = hex.x, hex.y
+            # reward if hex flooded and already evacuated
+            if hex.flood_flag and hex.population==0:
+                reward += R_FLOOD_EVAC
+            # reward if hex flooded and not evacuated
+            if hex.flood_flag and hex.population>0:
+                reward += R_FLOOD_NO_EVAC*hex.population
+        return reward
     
     def random_rollout(self, state: World, steps=ROLL_STEPS):
         # create a copy of our state after taking a current action
         rollout_state = deepcopy(state)
         # rollout for a certain number of states
-        utility = 0
+        evac_reward = 0
         for i in range(steps):
             # select random action (i.e. select some number of random hexes to evacuate)
             action_space = self.narrow_action_space(rollout_state)
@@ -98,13 +131,15 @@ class MCTS:
                 evac_hexes = action_space
             else:
                 evac_hexes = random.choices(action_space, k=MAX_EVAC_CELLS)
-            # get the next state and repeat
-            next_state = self.get_next_state(rollout_state, evac_hexes)
             # calculate reward for this action step and add to the total utility            
-            utility += self.calculate_reward(rollout_state, evac_hexes, next_state)
+            evac_reward += self.calculate_evac_reward(rollout_state, evac_hexes)
             # get the next state and repeat
-            rollout_state = next_state
-        return utility
+            rollout_state = self.get_next_state(rollout_state, evac_hexes)
+            
+        flood_reward = self.calculate_flood_reward(rollout_state)
+        total_reward = evac_reward + flood_reward
+
+        return total_reward
 
     def get_branched_actions(self, state, depth):
         # Get action space
@@ -124,12 +159,18 @@ class MCTS:
         if depth == 0:
             max_actions = MAX_ACTION_SPACE
         else:
-            max_actions = int((1/depth)*MAX_ACTION_SPACE)
+            max_actions = int(MAX_ACTION_SPACE/depth)
         # Calculate the max action for this depth
         if len(action_space) < max_actions:
             actions = action_space
         else:
-            actions = random.choices(action_space, k=max_actions)
+            if MCTS_RUN:
+                # sort the actions based on the average water level of each action if the action is not empty
+                action_space.sort(key=lambda x: np.sum([state.grid[i[0]][i[1]].water_level for i in x]) if len(x) > 0 else 0, reverse=True)
+                # choose the best k actions from the sorted list
+                actions = action_space[:max_actions]
+            else:
+                actions = random.choices(action_space, k=max_actions)
         return actions
 
     def get_best_action(self, parent):
@@ -146,7 +187,7 @@ class MCTS:
         if node.visits == 0:
             return float("inf")
         # otherwise, return the UCB1 heuristic for the node
-        return (node.reward/node.visits) + C * np.sqrt(np.log(node.parent.visits) / node.visits)
+        return (node.reward/node.visits) + (C/(node.depth)) * np.sqrt(np.log(node.parent.visits) / node.visits)
     
     # traverse the tree and return the state node to conduct rollout from
     def traverse(self):
@@ -181,7 +222,7 @@ class MCTS:
                         curr_node = self.expand_state(curr_node)
                     # print("Expanding State Node...")  
 
-        
+        # print("Current node depth: ", curr_node.depth)
         # print("Current node state: ", curr_node.state)
         # print('################################################')
         return curr_node
@@ -192,7 +233,8 @@ class MCTS:
         branch = True
         N_action = action_node.visits
         # Select a state to plunge into
-        if N_action > K*(N_action**ALPHA):
+        limit = int(MAX_STATE_SPACE/action_node.depth)#(K/action_node.depth)*(N_action**ALPHA)
+        if N_action > max(1,limit):
             branch = False
         return branch
 
@@ -234,24 +276,26 @@ class MCTS:
             curr_depth -= 1
             parent = parent.parent
 
-    def visualize(self):
-        graph = gv.Digraph()
-        for node in self.tree.keys():
-            graph.node(node.name)
-        for parent, children in self.tree.items():
-            for child in children:
-                graph.edge(parent.name, child.name)
-        graph.render('./bin/tree_visual', format = 'png',view=True)
+    # def visualize(self):
+    #     graph = gv.Digraph()
+    #     for node in self.tree.keys():
+    #         graph.node(node.name)
+    #     for parent, children in self.tree.items():
+    #         for child in children:
+    #             graph.edge(parent.name, child.name)
+    #     graph.render('./bin/tree_visual', format = 'png',view=True)
+
+
         
-def simulate_dpw(tree: MCTS):
+def simulate_dpw(tree: MCTS, t):
     # expand the root node once to get the child action nodes
     tree.expand_state(tree.root)
     for i in range(NUM_SIMS):
-        print("Simulation: ", i)
+        # print("Simulation: ", i)
         # traverse the tree to get a state node for rollout
         rollout_node = tree.traverse()
         # rollout from the state node
-        reward = tree.random_rollout(rollout_node.state, ROLL_STEPS)
+        reward = tree.random_rollout(rollout_node.state, min(SIM_TIME-t,ROLL_STEPS))
         rollout_node.reward = reward
         # backpropogate the reward
         tree.backpropogate(rollout_node)
@@ -272,22 +316,24 @@ def mcts_run(state: World):
             action = []
             obj.expand_state(obj.root)
         else:
-            action = simulate_dpw(obj)
+            action = simulate_dpw(obj,t)
+        # print(action)
+        net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
-        net_reward += obj.calculate_reward(state, action, next_state)
         state = next_state
-        print([child.name for child in obj.root.children[0].children])
-        obj.visualize()
+        # print([child.name for child in obj.root.children[0].children])
+        # obj.visualize()
+        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         obj = MCTS(state)
         t += 1
+    net_reward += obj.calculate_flood_reward(state)
     return net_reward, state.death_toll()
-    
 
 
 def RandAct(state: World, t):
     obj = MCTS(state)
     # get potential actions from given state
-    action_space = obj.get_branched_actions(state) # TODO: add DEPTH parameter
+    action_space = obj.get_branched_actions(state, depth=0)
     # generate potential next states from each action
     if not action_space:
         return action_space
@@ -304,28 +350,31 @@ def RandPolicy(state: World):
     obj = MCTS(state)
     net_reward = 0
     while t < SIM_TIME:
-        print(t)
+        print("Outer loop: ",t)
         action = RandAct(state, SIM_TIME - t)
+        # print("action: ", action)
+        net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
-        net_reward += obj.calculate_reward(state, action, next_state)
+        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         state = next_state
         t += 1
+        
+    net_reward += obj.calculate_flood_reward(state)
     # return net reward and total death toll
     return net_reward, state.death_toll()
-
-
 
 def main():
     # Create a world
     world = World(20, 20)
-    # Create a MCTS object
-    # mcts = MCTS(world)    
-    reward,dead = mcts_run(world)
-    # reward,dead = RandPolicy(world)
-    # depict the tree
-    # mcts.visualize()
-    print(reward," ",dead)
+    # Create a MCTS object 
+    if MCTS_RUN:
+        reward, dead = mcts_run(world)
+    else:
+        reward, dead = RandPolicy(world)
+    print(reward, dead)
     
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    print("--- %s seconds ---" % (time.time() - start_time))

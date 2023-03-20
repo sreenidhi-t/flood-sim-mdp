@@ -20,7 +20,7 @@ def low_neighbors(x,y,grid):
     return lower
 
 # simulate water flow for one time step in the grid 
-def simFlow(world):
+def simFlow(world: World):
     copyWorld = deepcopy(world)   
     copyGrid = copyWorld.grid
     # Iterate thorugh base grid and update copy
@@ -52,7 +52,7 @@ def calculateFlow(source, neighbors):
     flow_rates = flow_rates / np.sum(flow_rates)
     return flow_rates
 
-def randDrainFail(world):
+def randDrainFail(world: World):
     copyWorld = deepcopy(world)   
     copyGrid = copyWorld.grid
     # Iterate thorugh base grid and update copy
@@ -65,7 +65,7 @@ def randDrainFail(world):
                 copyGrid[x][y].drain_status = False
     return copyWorld
 
-def simDrain(world):
+def simDrain(world: World):
     copyWorld = deepcopy(world)   
     copyGrid = copyWorld.grid
     # Iterate thorugh base grid and update copy
@@ -75,13 +75,14 @@ def simDrain(world):
             copyGrid[x][y].drain_water()
     return copyWorld
 
-def simRain(world, precipRate):
-    copyWorld = deepcopy(world)   
+def simRain(world: World, precipRate):
+    copyWorld = deepcopy(world) 
     copyGrid = copyWorld.grid
     # Iterate thorugh base grid and update copy
     for x, row in enumerate(world.grid):
         for y, col in enumerate(world.grid):
             # for each hex cell, update the flow in based on the downfall rate
+            # print("CELL FLAG:", copyGrid[x][y].evac_flag)
             copyGrid[x][y].add_water(precipRate)
     # print(copyWorld.hexes[0].water_level)
 
