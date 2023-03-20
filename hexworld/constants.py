@@ -37,9 +37,9 @@ MCTS_RUN = True # boolean to alter run mode as MCTS or Random
 ## MCTS-DPW Constants
 MAX_DEPTH = 5 # maximum depth of tree defined by levels of actions 
 NUM_SIMS = 200 # cumulative number of simulations
-K = 2 # DPW coefficient
-ALPHA = 0.1 # DPW progressive widening parameter
-C = 5 # exploration constant
+K = 10 # DPW coefficient
+ALPHA = 0.9 # DPW progressive widening parameter
+C = 500 # exploration constant
 MAX_ACTION_SPACE = 5 # maximum number of actions to consider at each node
 MAX_STATE_SPACE = 5 # maximum number of states to consider at each node
 ROLL_STEPS = 10 # number of steps to roll out for each simulation

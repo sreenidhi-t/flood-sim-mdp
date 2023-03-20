@@ -7,6 +7,7 @@ import random
 from copy import deepcopy
 import graphviz as gv
 from draw import *
+import time
 
 
 # Node class for MCTS tree
@@ -316,7 +317,7 @@ def mcts_run(state: World):
             obj.expand_state(obj.root)
         else:
             action = simulate_dpw(obj,t)
-        print(action)
+        # print(action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
         state = next_state
@@ -351,10 +352,10 @@ def RandPolicy(state: World):
     while t < SIM_TIME:
         print("Outer loop: ",t)
         action = RandAct(state, SIM_TIME - t)
-        print("action: ", action)
+        # print("action: ", action)
         net_reward += obj.calculate_evac_reward(state, action)
         next_state = obj.get_next_state(state, action)
-        draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
+        # draw(state, 'test{}.png'.format(t), color_func_water, draw_edges=True)
         state = next_state
         t += 1
         
@@ -363,6 +364,7 @@ def RandPolicy(state: World):
     return net_reward, state.death_toll()
 
 def main():
+    start = time.time()
     # Create a world
     world = World(20, 20)
     # Create a MCTS object 
@@ -370,6 +372,9 @@ def main():
         reward, dead = mcts_run(world)
     else:
         reward, dead = RandPolicy(world)
+    end = time.time()
+    elapsed = end - start
+    print("Time elapsed: ", elapsed)
     print(reward, dead)
     
 
